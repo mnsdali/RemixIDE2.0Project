@@ -15,7 +15,7 @@
       integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
       crossorigin="anonymous"
     />
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/floatingPlaceholder.css') }}">
     <title>{% block headTitle %} RemixIDE 2.0 {% endblock %}</title>
   </head>
 
@@ -28,10 +28,12 @@
         Contract you wish to test
         </h3>
     </div>
-    <form class="form-inline my-4" action="/submit-form" method="post">
+    
+    {% block mainContent%}
+    <form class="form-inline my-4" action="/submit-form" method="post" enctype="multipart/form-data">
         <div class="container" align="center">
             <div class="row justify-content-md-center">
-
+            
                 <div class="col-6 custom-file">
                     <input type="file" class="custom-file-input form-control" accept=".sol" name="file" id="fileInput" multiple max="1" onchange="handleFileSelect(event)" required />
                     <label class="custom-file-label" for="fileInput" style="font-size:16px;">  Choose your smart contract... </label>
@@ -45,6 +47,9 @@
                             <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
                           </svg> Compile
                     </button>
+
+                    
+
                     <button type="submit" class="btn btn-outline-dark" name="deployBtn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-airplane-engines" viewBox="0 0 16 16">
                             <path d="M8 0c-.787 0-1.292.592-1.572 1.151A4.347 4.347 0 0 0 6 3v3.691l-2 1V7.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.191l-1.17.585A1.5 1.5 0 0 0 0 10.618V12a.5.5 0 0 0 .582.493l1.631-.272.313.937a.5.5 0 0 0 .948 0l.405-1.214 2.21-.369.375 2.253-1.318 1.318A.5.5 0 0 0 5.5 16h5a.5.5 0 0 0 .354-.854l-1.318-1.318.375-2.253 2.21.369.405 1.214a.5.5 0 0 0 .948 0l.313-.937 1.63.272A.5.5 0 0 0 16 12v-1.382a1.5 1.5 0 0 0-.83-1.342L14 8.691V7.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v.191l-2-1V3c0-.568-.14-1.271-.428-1.849C9.292.591 8.787 0 8 0ZM7 3c0-.432.11-.979.322-1.401C7.542 1.159 7.787 1 8 1c.213 0 .458.158.678.599C8.889 2.02 9 2.569 9 3v4a.5.5 0 0 0 .276.447l5.448 2.724a.5.5 0 0 1 .276.447v.792l-5.418-.903a.5.5 0 0 0-.575.41l-.5 3a.5.5 0 0 0 .14.437l.646.646H6.707l.647-.646a.5.5 0 0 0 .14-.436l-.5-3a.5.5 0 0 0-.576-.411L1 11.41v-.792a.5.5 0 0 1 .276-.447l5.448-2.724A.5.5 0 0 0 7 7V3Z"/>
@@ -53,15 +58,18 @@
                 </div>
             </div>
             <div id="fileList"></div>
+            
         </div>
     </form>
-
+    {% endblock%}
     {% block alertsBlock %}
 
       {% with messages = get_flashed_messages( with_categories=true ) %}
         
           {% if messages %}
               {% for category, message in messages %} 
+              <div class="container">
+          
                   {% if category == "error" %}
                       <div class="alert alert-danger alert-dismissable fade show" role="alert"> 
                           {{ message }}
@@ -78,6 +86,10 @@
                           </button>
                       </div>
                   {%endif%}
+
+                </div>
+                
+
               {% endfor%}
           {% endif %}
 
@@ -116,6 +128,18 @@
         }
 
     </script>
+
+    <script>
+      const fileInput = document.getElementById('fileInput');
+      fileInput.addEventListener('change', (event) => {
+          const selectedFile = event.target.files[0];
+          const filePath = URL.createObjectURL(selectedFile);
+
+          document.getElementById("filePath").value = filePath;
+          
+      });
+    </script>
+
     <script>
 
         function handleFileSelect(event) {
@@ -124,18 +148,55 @@
             fileList.innerHTML = '';
             for (var i = 0; i < files.length; i++) {
               var file = files[i];
-              var fileListItem = document.createElement('div');
+              var fileListItem = document.createElement('input');
               var removeButton = document.createElement('button');
               removeButton.innerHTML = 'Remove';
               removeButton.onclick = function() {
                 fileInput.value = '';
                 fileList.removeChild(fileListItem);
+                fileList.removeChild(removeButton);
               };
-              fileListItem.innerHTML = file.name;
-              fileListItem.appendChild(removeButton);
+              fileListItem.value = file.name;
+              fileListItem.readOnly = true;
+              fileListItem.id= 'fileName'
+              fileListItem.name = 'fileName'
               fileList.appendChild(fileListItem);
+              fileList.appendChild(removeButton);
+              
             }
           }
     </script>
+
+
+    <script>
+      // Get a reference to the input element
+      const input = document.querySelector('input[type="text"]');
+    
+      // Define a regex pattern for allowed characters
+      const patternArray = /^[a-zA-Z0-9,. \-]+$/;
+      const patternAlphaNum = /^[a-zA-Z0-9. \-]+$/;
+
+      // Add an event listener to the input element
+      input.addEventListener('input', (event) => {
+        // Get the current value of the input
+        const value = event.target.value;
+    
+        // Test the value against the regex pattern
+        if (input.classList.contains('arr')){
+            if (!patternArray.test(value) || value.includes('--') || value.includes(',,') 
+                        || value.includes('  ') || value.includes('..') || value.includes(' ,') ) {
+            // If the value does not match the pattern, remove the last character
+            event.target.value = value.slice(0, -1);
+          }
+        }else{
+          if (!patternAlphaNum.test(value) || value.includes('--') || value.includes(',,') 
+                        || value.includes('  ') || value.includes('..')  || value.includes(' ,') ) {
+            // If the value does not match the pattern, remove the last character
+            event.target.value = value.slice(0, -1);
+          }
+        }
+      });
+    </script>
+    
   </body>
 </html>

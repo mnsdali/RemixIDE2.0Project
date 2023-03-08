@@ -3,7 +3,7 @@ import subprocess
 
 
 contract_file_name = "votingDaliMMA"
-def compile_smart_contract(contract_name):
+def brownieCompile(contract_name):
     # Change the working directory to the directory where the smart contract is located
      
     working_directory = f"../brownie_workspace/contracts/"
